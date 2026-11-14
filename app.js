@@ -12,7 +12,15 @@
     plug: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 7V3h-2v4h-4V3H8v4H6v7.5L9.5 18v3h5v-3l3.5-3.5V7h-2z"/></svg>',
     tv: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5v2h8v-2h5a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 14H3V5h18v12z"/></svg>'
   };
-  var TYPES = ['fan', 'light', 'pc', 'plug', 'tv'];
+  ICONS.music = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>';
+  ICONS.volup = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+  ICONS.voldown = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.5 12A4.5 4.5 0 0 0 16 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/></svg>';
+  ICONS.moon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>';
+  var TYPES = ['fan', 'light', 'pc', 'plug', 'tv', 'music', 'volup', 'voldown', 'moon'];
+
+  // Versión de la lista de botones de fábrica. Al subirla, los botones nuevos
+  // (campo "since") se añaden a quien ya tenía la app, sin tocar los suyos.
+  var PRESETS = 2;
 
   // Los tres dispositivos iniciales apuntan a la "casa de prueba" del servidor
   // (/demo/...). Cuando existan los enlaces reales de Alexa se cambian en "•••".
@@ -24,7 +32,12 @@
     return [
       { id: 'fan', name: 'Ventilador', type: 'fan', mode: 'toggle', on: false, urlOn: u('fan/on'), urlOff: u('fan/off'), bridge: false },
       { id: 'light', name: 'Luces', type: 'light', mode: 'toggle', on: false, urlOn: u('light/on'), urlOff: u('light/off'), bridge: false },
-      { id: 'pc', name: 'Computador', type: 'pc', mode: 'push', on: false, urlOn: u('pc/on'), urlOff: '', bridge: false }
+      { id: 'pc', name: 'Computador', type: 'pc', mode: 'push', on: false, urlOn: u('pc/on'), urlOff: '', bridge: false },
+      { id: 'music', since: 2, name: 'Música', type: 'music', mode: 'toggle', on: false, urlOn: u('music/on'), urlOff: u('music/off'), bridge: false },
+      { id: 'volup', since: 2, name: 'Volumen alto', type: 'volup', mode: 'push', on: false, urlOn: u('volup/on'), urlOff: '', bridge: false },
+      { id: 'voldown', since: 2, name: 'Volumen bajo', type: 'voldown', mode: 'push', on: false, urlOn: u('voldown/on'), urlOff: '', bridge: false },
+      // allOff: al activarse, marca como apagados los demás botones.
+      { id: 'night', since: 2, name: 'Buenas noches', type: 'moon', mode: 'push', allOff: true, on: false, urlOn: u('night/on'), urlOff: '', bridge: false }
     ];
   }
 
@@ -32,12 +45,27 @@
   var devices = load();
 
   function load() {
+    var list = null, have = 1, fresh, i, j, found;
     try {
       var raw = localStorage.getItem(STORE_KEY);
-      var list = raw ? JSON.parse(raw) : null;
-      if (list && list.length !== undefined) { return list; }
+      list = raw ? JSON.parse(raw) : null;
+      have = Number(localStorage.getItem(STORE_KEY + '.presets')) || 1;
     } catch (e) {}
-    return defaults();
+    fresh = defaults();
+    if (!list || list.length === undefined) {
+      list = fresh;
+    } else if (have < PRESETS) {
+      for (i = 0; i < fresh.length; i++) {
+        found = false;
+        for (j = 0; j < list.length; j++) { if (list[j].id === fresh[i].id) { found = true; } }
+        if (!found && fresh[i].since > have) { list.push(fresh[i]); }
+      }
+    }
+    try {
+      localStorage.setItem(STORE_KEY + '.presets', String(PRESETS));
+      localStorage.setItem(STORE_KEY, JSON.stringify(list));
+    } catch (e) {}
+    return list;
   }
 
   function save() {
@@ -195,6 +223,11 @@
         toast('Modo demo: configura el enlace en •••');
       } else if (push) {
         toast(d.name + ': orden enviada');
+      }
+      if (d.allOff && (res === 'ok' || res === 'demo')) {
+        for (var k = 0; k < devices.length; k++) {
+          if (devices[k].mode !== 'push') { devices[k].on = false; }
+        }
       }
       if (push && d.on) {
         setTimeout(function () { d.on = false; save(); render(); }, 1500);

@@ -131,6 +131,9 @@ html, body {
 .tile.on.c-pc    { background: #45d483; }
 .tile.on.c-plug  { background: #a99bff; }
 .tile.on.c-tv    { background: #ff8a7a; }
+.tile.on.c-music { background: #f178b6; }
+.tile.on.c-volup, .tile.on.c-voldown { background: #b8c4d4; }
+.tile.on.c-moon  { background: #7f9bff; }
 
 .tile.on.c-fan .ico svg {
   -webkit-animation: spin 1.2s linear infinite;
