@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" manifest="offline.appcache">
+<head>
+<meta charset="utf-8">
+<title>Mi Casa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<!-- Permite instalarla en la pantalla de inicio del iPhone como una app -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Mi Casa">
+<meta name="format-detection" content="telephone=no">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Pantalla principal -->
+<div id="home" class="view">
+  <div class="bar">
+    <div class="title">Mi Casa</div>
+    <div class="sub" id="summary"></div>
+  </div>
+  <div class="scroll">
+    <div id="grid" class="grid"></div>
+  </div>
+</div>
+
+<!-- Editor de dispositivo -->
+<div id="editor" class="view hidden">
+  <div class="bar bar-edit">
+    <div class="btn-text left" id="btnCancel">Cancelar</div>
+    <div class="title small" id="editorTitle">Nuevo</div>
+    <div class="btn-text right strong" id="btnSave">Guardar</div>
+  </div>
+  <div class="scroll">
+    <div class="form">
+      <label class="lbl" for="fName">Nombre</label>
+      <input class="inp" id="fName" type="text" maxlength="18" placeholder="Ej: Lámpara sala" autocomplete="off" autocorrect="off">
+
+      <div class="lbl">Icono</div>
+      <div class="types" id="fTypes"></div>
+
+      <div class="lbl">Tipo de control</div>
+      <div class="seg" id="fMode">
+        <div class="seg-i" data-mode="toggle">Encender / Apagar</div>
+        <div class="seg-i" data-mode="push">Un solo botón</div>
+      </div>
+
+      <label class="lbl" for="fOn" id="lblOn">Enlace para encender</label>
+      <input class="inp" id="fOn" type="url" placeholder="https://..." autocomplete="off" autocorrect="off" autocapitalize="off">
+
+      <div id="offWrap">
+        <label class="lbl" for="fOff">Enlace para apagar</label>
+        <input class="inp" id="fOff" type="url" placeholder="https://..." autocomplete="off" autocorrect="off" autocapitalize="off">
+      </div>
+
+      <div class="check" id="fBridge">
+        <div class="box"></div>
+        <div class="check-t">Enviar a través del PC<span>Solo si el envío directo falla en este iPhone</span></div>
+      </div>
+
+      <div class="hint">Sin enlace, el botón funciona en modo demo.</div>
+      <div class="btn-del hidden" id="btnDelete">Eliminar dispositivo</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+/* Mi Casa - control remoto para Alexa.
+   Compatible con Safari de iOS 9 (iPhone 4s): sin grid, sin variables CSS,
+   solo animaciones de transform/opacity para que vaya fluido. */
+
+* {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #0f1216;
+  color: #f2f4f7;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+.view {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: #0f1216;
+  -webkit-transition: -webkit-transform .25s ease;
+  transition: transform .25s ease;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+#editor { z-index: 2; }
+#editor.hidden {
+  -webkit-transform: translate3d(0, 100%, 0);
+  transform: translate3d(0, 100%, 0);
+}
+.hidden-el, .btn-del.hidden { display: none; }
+
+/* Barra superior */
+.bar {
+  height: 64px;
+  padding: 12px 16px 0;
+}
+.title { font-size: 24px; font-weight: 700; line-height: 28px; }
+.title.small { font-size: 17px; font-weight: 600; text-align: center; line-height: 44px; }
+.sub { font-size: 13px; color: #8a94a3; line-height: 18px; }
+
+.bar-edit {
+  height: 44px;
+  padding: 0;
+  position: relative;
+  border-bottom: 1px solid #232932;
+}
+.btn-text {
+  position: absolute;
+  top: 0;
+  height: 44px;
+  line-height: 44px;
+  padding: 0 14px;
+  color: #35b8e0;
+  font-size: 16px;
+}
+.btn-text.left { left: 0; }
+.btn-text.right { right: 0; }
+.btn-text.strong { font-weight: 600; }
+.btn-text:active { opacity: .5; }
+
+.scroll {
+  position: absolute;
+  top: 64px; right: 0; bottom: 0; left: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#editor .scroll { top: 44px; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* Cuadrícula de dispositivos (2 columnas con float) */
+.grid { padding: 2px 10px 16px; }
+.grid:after { content: ""; display: table; clear: both; }
+.cell { float: left; width: 50%; padding: 6px; }
+
+.tile {
+  position: relative;
+  height: 116px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #1b2027;
+  color: #f2f4f7;
+  -webkit-transition: -webkit-transform .12s ease, background-color .2s ease;
+  transition: transform .12s ease, background-color .2s ease;
+}
+.tile.press {
+  -webkit-transform: scale(.95);
+  transform: scale(.95);
+}
+.tile .ico { width: 34px; height: 34px; color: #8a94a3; }
+.tile .ico svg { width: 34px; height: 34px; display: block; }
+.tile .name {
+  position: absolute;
+  left: 12px; right: 12px; bottom: 28px;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tile .state {
+  position: absolute;
+  left: 12px; bottom: 11px;
+  font-size: 12px;
+  color: #8a94a3;
+}
+.tile .edit {
+  position: absolute;
+  top: 0; right: 0;
+  width: 44px; height: 40px;
+  line-height: 34px;
+  text-align: center;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: #6b7482;
+}
+
+/* Encendido: el color depende del tipo */
+.tile.on { color: #0d1013; }
+.tile.on .ico, .tile.on .state, .tile.on .edit { color: #0d1013; }
+.tile.on .state, .tile.on .edit { opacity: .65; }
+.tile.on.c-fan   { background: #35b8e0; }
+.tile.on.c-light { background: #f5bd3d; }
+.tile.on.c-pc    { background: #45d483; }
+.tile.on.c-plug  { background: #a99bff; }
+.tile.on.c-tv    { background: #ff8a7a; }
+
+.tile.on.c-fan .ico svg {
+  -webkit-animation: spin 1.2s linear infinite;
+  animation: spin 1.2s linear infinite;
+}
+@-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Tarjeta "Agregar" */
+.tile.add {
+  background: none;
+  border: 2px dashed #2c333d;
+  text-align: center;
+  color: #8a94a3;
+}
+.tile.add .plus { font-size: 40px; line-height: 58px; font-weight: 200; }
+.tile.add .add-t { font-size: 13px; }
+
+/* Formulario */
+.form { padding: 6px 16px 28px; }
+.lbl {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #8a94a3;
+}
+.inp {
+  display: block;
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #2c333d;
+  border-radius: 10px;
+  background: #1b2027;
+  color: #f2f4f7;
+  font-size: 16px; /* 16px evita el zoom automático de Safari */
+  font-family: inherit;
+  -webkit-appearance: none;
+  -webkit-user-select: text;
+  user-select: text;
+  outline: none;
+}
+.inp:focus { border-color: #35b8e0; }
+
+.types:after { content: ""; display: table; clear: both; }
+.type {
+  float: left;
+  width: 20%;
+  height: 48px;
+  padding: 9px 0;
+  border-radius: 10px;
+  color: #6b7482;
+}
+.type svg { display: block; width: 30px; height: 30px; margin: 0 auto; }
+.type.sel { background: #1b2027; color: #35b8e0; }
+
+.seg {
+  border: 1px solid #2c333d;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.seg:after { content: ""; display: table; clear: both; }
+.seg-i {
+  float: left;
+  width: 50%;
+  height: 38px;
+  line-height: 38px;
+  text-align: center;
+  font-size: 13px;
+  color: #8a94a3;
+}
+.seg-i.sel { background: #35b8e0; color: #0d1013; font-weight: 600; }
+
+.check { margin-top: 18px; position: relative; padding-left: 36px; min-height: 36px; }
+.check .box {
+  position: absolute;
+  left: 0; top: 2px;
+  width: 24px; height: 24px;
+  border: 2px solid #2c333d;
+  border-radius: 7px;
+}
+.check.sel .box { background: #35b8e0; border-color: #35b8e0; }
+.check.sel .box:after {
+  content: "";
+  position: absolute;
+  left: 6px; top: 2px;
+  width: 6px; height: 11px;
+  border: solid #0d1013;
+  border-width: 0 2px 2px 0;
+  -webkit-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+.check-t { font-size: 14px; line-height: 18px; }
+.check-t span { display: block; font-size: 12px; color: #8a94a3; }
+
+.hint { margin-top: 16px; font-size: 12px; color: #6b7482; }
+.btn-del {
+  margin-top: 22px;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  border-radius: 10px;
+  background: #2a1a1c;
+  color: #ff6b6b;
+  font-size: 15px;
+}
+.btn-del:active, .type:active { opacity: .6; }
+
+/* Aviso inferior */
+.toast {
+  position: absolute;
+  z-index: 5;
+  left: 20px; right: 20px; bottom: 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f2f4f7;
+  color: #0d1013;
+  font-size: 13px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-transform: translate3d(0, 10px, 0);
+  transform: translate3d(0, 10px, 0);
+  -webkit-transition: opacity .2s ease, -webkit-transform .2s ease;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.toast.show {
+  opacity: 1;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.toast.err { background: #ff6b6b; }
